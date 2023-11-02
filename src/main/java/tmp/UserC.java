@@ -4,12 +4,10 @@ import di_ioc_engine.anotations.Component;
 import di_ioc_engine.anotations.Qualifier;
 
 @Component
-@Qualifier("implUserB")
-public class UserB implements User{
+@Qualifier("implUserC")
+public class UserC implements User{
     @Override
     public void g() {
-        System.out.println("Printed from user B");
+        System.out.println("Printed from UserC");
     }
-
-
 }
