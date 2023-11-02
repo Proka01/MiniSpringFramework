@@ -24,17 +24,17 @@ public class Server {
         DunjaClass dunjaClass = new DunjaClass();
         dunjaClass.f();
 
-//        try {
-//            ServerSocket serverSocket = new ServerSocket(TCP_PORT);
-//            System.out.println("Server is running at http://localhost:"+TCP_PORT);
-//            while(true){
-//                Socket socket = serverSocket.accept();
-//                new Thread(new ServerThread(socket)).start();
-//            }
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            ServerSocket serverSocket = new ServerSocket(TCP_PORT);
+            System.out.println("Server is running at http://localhost:"+TCP_PORT);
+            while(true){
+                Socket socket = serverSocket.accept();
+                new Thread(new ServerThread(socket)).start();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 }

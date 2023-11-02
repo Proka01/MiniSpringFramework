@@ -38,6 +38,19 @@ public class Request {
         return new HashMap<String, String>(this.parameters);
     }
 
+    public String[] getParametersAsStringArray()
+    {
+        String[] valuesArray = new String[getParameters().size()];
+
+        int index = 0;
+        for (String value : getParameters().values()) {
+            valuesArray[index] = value;
+            index++;
+        }
+
+        return valuesArray;
+    }
+
     public boolean isMethod(Method method) {
         return this.getMethod().equals(method);
     }
@@ -52,5 +65,14 @@ public class Request {
 
     public Header getHeader() {
         return header;
+    }
+
+    public String getRoute()
+    {
+        String route = "";
+        String location[] = getLocation().split("\\?");
+        route = location[0];
+
+        return route;
     }
 }

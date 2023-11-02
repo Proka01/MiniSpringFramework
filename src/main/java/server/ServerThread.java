@@ -7,8 +7,10 @@ import framework.request.enums.Method;
 import framework.request.exceptions.RequestNotValidException;
 import framework.response.JsonResponse;
 import framework.response.Response;
+import route_registration.RoutesRegistry;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +20,9 @@ public class ServerThread implements Runnable{
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
+
+    private String base_route = "http://localhost:8080";
+    public RoutesRegistry routesRegistry = RoutesRegistry.getInstance();
 
     public ServerThread(Socket socket){
         this.socket = socket;
@@ -47,12 +52,25 @@ public class ServerThread implements Runnable{
                 return;
             }
 
+            System.out.println("DEBUG");
+
+            String path = request.getMethod().toString() +":"+base_route + request.getRoute();
+            System.out.println("Path: " + path);
+            java.lang.reflect.Method methodToInvoke = routesRegistry.routesRegistryMap.get(path);
+            System.out.println("Method: " + methodToInvoke.getName());
+            Object methodClassInstance = routesRegistry.methodClassMap.get(path);
+            Object[] arguments = request.getParametersAsStringArray();
+            System.out.println("Args: " + arguments.toString());
+            String result = "-";
+            try { result = (String) methodToInvoke.invoke(methodClassInstance,arguments);}
+            catch (Exception e) {e.printStackTrace();}
 
             // Response example
             Map<String, Object> responseMap = new HashMap<>();
-            responseMap.put("route_location", request.getLocation());
-            responseMap.put("route_method", request.getMethod().toString());
-            responseMap.put("parameters", request.getParameters());
+//            responseMap.put("route_location", request.getLocation());
+//            responseMap.put("route_method", request.getMethod().toString());
+//            responseMap.put("parameters", request.getParameters());
+            responseMap.put("initials", result);
             Response response = new JsonResponse(responseMap);
 
             out.println(response.render());
