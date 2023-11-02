@@ -14,8 +14,16 @@ public class Server {
     public static void main(String[] args) throws IOException {
 
         DI_Engine di_engine = DI_Engine.getInstance();
-//        di_engine.initializeAllBeans();
-        di_engine.printAllBeans();
+
+        di_engine.initializeDependencyContainer();
+        di_engine.printDependencyContainer();
+
+        di_engine.initializeAllBeans();
+
+        ProkicClass prokicClass = new ProkicClass();
+        prokicClass = (ProkicClass) di_engine.findInstanceByType(di_engine.beanInstancesRegistry, prokicClass.getClass());
+
+        prokicClass.f();
 
 //        try {
 //            ServerSocket serverSocket = new ServerSocket(TCP_PORT);

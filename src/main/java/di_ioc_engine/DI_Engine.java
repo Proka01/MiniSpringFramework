@@ -1,9 +1,6 @@
 package di_ioc_engine;
 
-import di_ioc_engine.anotations.Autowired;
-import di_ioc_engine.anotations.Component;
-import di_ioc_engine.anotations.MyBean;
-import di_ioc_engine.anotations.Service;
+import di_ioc_engine.anotations.*;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
@@ -11,6 +8,7 @@ import org.reflections.util.ConfigurationBuilder;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class DI_Engine {
@@ -18,7 +16,7 @@ public class DI_Engine {
 
     public List<Class<?>> beanClassesRegistry = new ArrayList<>();
     public List<Object> beanInstancesRegistry = new ArrayList<>();
-
+    public HashMap<String, Class<?>> dependencyContainer = new HashMap<>();
 
     private DI_Engine() {
     }
@@ -29,17 +27,27 @@ public class DI_Engine {
         return instance;
     }
 
-    private boolean isScopeSingleton(Class<?> clazz)
+    public void initializeDependencyContainer()
     {
-        MyBean mb = clazz.getAnnotation(MyBean.class);
-        Component comp = clazz.getAnnotation(Component.class);
-        Service serv = clazz.getAnnotation(Service.class);
+        // Define the base package(s) you want to scan
+        // Change this to your project's base package
+        String basePackage = "di_ioc_engine";
 
-        if(mb != null) return mb.scope().equals("singleton");
-        if(comp != null) return comp.scope().equals("singleton");
-        if(serv != null) return serv.scope().equals("singleton");
+        Reflections reflections = new Reflections(new ConfigurationBuilder()
+                .setUrls(ClasspathHelper.forPackage(basePackage))
+                .setScanners(new SubTypesScanner(false))
+        );
 
-        return false;
+        // Get all the classes in the base package and its subpackages
+        for (Class<?> clazz : reflections.getSubTypesOf(Object.class)) {
+            Qualifier qualifier = clazz.getAnnotation(Qualifier.class);
+
+            if(qualifier != null)
+            {
+                String qualifierID = qualifier.value();
+                dependencyContainer.put(qualifierID,clazz);
+            }
+        }
     }
 
     public void initializeAllBeans()
@@ -70,12 +78,19 @@ public class DI_Engine {
 
 
     /**
+     * DEPENDENCY INJECTION LOGIC:
+     *
      * if clazz has no @Autowired fields make and instance and mark it in beanInstanceRegistry
      *
-     * if clazz has some @Autowired fields for each of them first try to inject them from beanInstanceRegistry if
-     * they are present, or if not call function recursively
+     * if clazz has some @Autowired fields for each of them:
+     *      1. determent if field is interface and from dependencyContainer take appropriate clazz for injection
+     *      2. first try to inject them from beanInstanceRegistry if they are present
+     *      3. or if not call function recursively
      *
-     * when all @Autowired fields are satisfied, mark clazzInstance in beanInstanceRegistry and return
+     * when all @Autowired fields are satisfied,
+     * mark clazzInstance in beanInstanceRegistry is class is bean whit scope="singleton"
+     *
+     * return clazz instance
      * */
     private Object initBean(Class<?> clazz)
     {
@@ -105,10 +120,18 @@ public class DI_Engine {
 
                 if (a != null)
                 {
+                    Class<?> fieldInjectType = f.getType();
+                    if(fieldInjectType.isInterface())
+                    {
+                        Qualifier qualifier = f.getAnnotation(Qualifier.class);
+                        if(qualifier != null) fieldInjectType = dependencyContainer.get(qualifier.value());
+                        else System.out.println("ERROR @Autowired interface need to have @Qualifier");
+                    }
+
                     try
                     {
-                        Object injectInstance = findInstanceByType(beanInstancesRegistry, f.getType());
-                        if(injectInstance == null) injectInstance = initBean(f.getType());
+                        Object injectInstance = findInstanceByType(beanInstancesRegistry, fieldInjectType);
+                        if(injectInstance == null) injectInstance = initBean(fieldInjectType);
 
                         f.set(clazzInstance,injectInstance);
                     }
@@ -118,10 +141,27 @@ public class DI_Engine {
                 f.setAccessible(isAccessible);
             }
 
-            //after all @Autowired fields are processed, mark clazzInstance in registry and return it
-            beanInstancesRegistry.add(clazzInstance);
+            //after all @Autowired fields are processed,
+            // mark clazzInstance in registry if its bean is scope=singleton
+            // and then return it
+            if(isScopeSingleton(clazz))
+                beanInstancesRegistry.add(clazzInstance);
+
             return  clazzInstance;
         }
+    }
+
+    private boolean isScopeSingleton(Class<?> clazz)
+    {
+        MyBean mb = clazz.getAnnotation(MyBean.class);
+        Component comp = clazz.getAnnotation(Component.class);
+        Service serv = clazz.getAnnotation(Service.class);
+
+        if(mb != null) return mb.scope().equals("singleton");
+        if(comp != null) return comp.scope().equals("singleton");
+        if(serv != null) return serv.scope().equals("singleton");
+
+        return false;
     }
 
     private boolean hasAutowiredFields(Class<?> clazz)
@@ -150,6 +190,13 @@ public class DI_Engine {
     {
         for(Class<?> clazz : beanClassesRegistry)
             System.out.println(clazz.getSimpleName());
+    }
+
+    public void printDependencyContainer()
+    {
+        for (String key : dependencyContainer.keySet()) {
+            System.out.println(key + ": " + dependencyContainer.get(key).getSimpleName());
+        }
     }
 
 }
