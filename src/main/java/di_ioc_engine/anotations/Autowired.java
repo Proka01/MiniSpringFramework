@@ -6,7 +6,7 @@ import java.lang.annotation.*;
 @Target(ElementType.FIELD)
 @Inherited
 public @interface Autowired {
-    boolean verbose() default false;
+    boolean verbose() default true;
 }
 
 

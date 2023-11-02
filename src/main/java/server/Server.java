@@ -1,6 +1,7 @@
 package server;
 
 import di_ioc_engine.DI_Engine;
+import tmp.DunjaClass;
 import tmp.ProkicClass;
 
 import java.io.IOException;
@@ -20,7 +21,8 @@ public class Server {
         ProkicClass prokicClass = new ProkicClass();
         prokicClass.f();
 
-
+        DunjaClass dunjaClass = new DunjaClass();
+        dunjaClass.f();
 
 //        try {
 //            ServerSocket serverSocket = new ServerSocket(TCP_PORT);

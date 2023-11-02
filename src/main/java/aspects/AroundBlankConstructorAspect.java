@@ -108,6 +108,8 @@ public class AroundBlankConstructorAspect {
                 if(fieldInjectInstance == null) fieldInjectInstance = fieldInjectType.getDeclaredConstructor().newInstance();
 
                 f.set(clazzInstance,fieldInjectInstance);
+
+                if(a.verbose()) di_engine.printInstanceVerboseInfo(fieldInjectInstance,f.getName());
             }
             catch (Exception e) {e.printStackTrace();}
         }

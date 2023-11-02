@@ -7,6 +7,7 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +26,19 @@ public class DI_Engine {
             instance = new DI_Engine();
         }
         return instance;
+    }
+
+    public void printInstanceVerboseInfo(Object instance, String fieldName)
+    {
+        String out = "";
+        out += "<" + instance.getClass().getSimpleName() + ">" + " ";
+        out += "<" + fieldName + ">" + " ";
+        out += "<" + instance.getClass().getSuperclass().getSimpleName() + ">" + " ";
+        out += "<" + LocalDateTime.now().toString() + ">" + " ";
+        out += "<" + instance.hashCode() + ">" + " ";
+        out += "\n";
+
+        System.out.println(out);
     }
 
     public void initializeDependencyContainer()
