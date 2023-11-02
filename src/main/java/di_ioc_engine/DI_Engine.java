@@ -71,7 +71,10 @@ public class DI_Engine {
             if(mb != null || comp != null || serv != null)
             {
                 beanClassesRegistry.add(clazz);
-                initBean(clazz);
+
+                //singleton beans can be initialized in advance
+                if(isScopeSingleton(clazz))
+                    initBean(clazz);
             }
         }
     }
